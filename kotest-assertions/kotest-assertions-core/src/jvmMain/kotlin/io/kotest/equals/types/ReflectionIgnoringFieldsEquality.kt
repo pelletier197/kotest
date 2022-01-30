@@ -1,5 +1,7 @@
-package io.kotest.equals
+package io.kotest.equals.types
 
+import io.kotest.equals.Equality
+import io.kotest.equals.EqualityResult
 import io.kotest.matchers.equality.beEqualToIgnoringFields
 import kotlin.reflect.KProperty
 
