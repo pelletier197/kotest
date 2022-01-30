@@ -2,6 +2,7 @@ package io.kotest.equals.types
 
 import io.kotest.equals.Equality
 import io.kotest.equals.EqualityResult
+import io.kotest.equals.areNotEqual
 import io.kotest.equals.types.utils.printValues
 
 open class IterableEqualityVerifier(
@@ -31,13 +32,18 @@ open class IterableEqualityVerifier(
          iterableContainFunction = { list, item ->
             list.any { itemEqualityVerifier.verify(it, item).areEqual() }
          })
+
       val typeEqualityResult = typeCompatibilityEquality(actual, expected)
 
-      if(contentResult.areEqual() && typeEqualityResult.areEqual()) {
+      if (contentResult.areEqual() && typeEqualityResult.areEqual()) {
          return EqualityResult.equal(actual, expected, this)
       }
 
-      TODO()
+      if (!typeEqualityResult.areEqual()) {
+         return typeEqualityResult
+      }
+
+      return contentResult
    }
 
    private fun typeCompatibilityEquality(actual: Iterable<*>, expected: Iterable<*>): EqualityResult {
@@ -64,7 +70,7 @@ open class IterableEqualityVerifier(
 
 
    // This implementation ignores set item order as for set's equal implementation.
-   protected fun areSetsEqual(actual: Set<*>, expected: Set<*>): EqualityResult {
+   private fun areSetsEqual(actual: Set<*>, expected: Set<*>): EqualityResult {
       val itemEqualityVerifier = objectEqualityVerifier()
       return areEqualIgnoringOrder(actual = actual, expected = expected, iterableContainFunction = { set, item ->
          // Contained as is. Best performance.
