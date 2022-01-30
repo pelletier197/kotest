@@ -11,4 +11,8 @@ class StringEqTest : FunSpec({
          |expected:<\r\nfoo\nbar\r\n> but was:<foo\nbar\r>
          """.trimMargin()
    }
+
+   test("rree") {
+      "a" shouldBe "b"
+   }
 })

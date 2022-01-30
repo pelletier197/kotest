@@ -1,5 +1,6 @@
 package io.kotest.equals
 
+import io.kotest.assertions.print.Printers
 import io.kotest.assertions.print.print
 
 interface EqualityResult {
@@ -8,31 +9,40 @@ interface EqualityResult {
    fun details(): EqualityResultDetails
 
    companion object {
-      fun <T> equal(actual: T, expected: T, verifier: Equality<*>): SimpleEqualityResult {
-         return create(equal = true, actual = actual, expected = expected, verifier = verifier)
+      fun <T> equal(
+         actual: T,
+         expected: T,
+         equality: Equality<*>,
+         printer: (T) -> String = { it.print().value }
+      ): SimpleEqualityResult<T> {
+         return create(equal = true, actual = actual, expected = expected, verifier = equality, printer = printer)
       }
 
-      fun <T> notEqual(actual: T, expected: T, verifier: Equality<*>): SimpleEqualityResult {
-         return create(equal = false, actual = actual, expected = expected, verifier = verifier)
+      fun <T> notEqual(
+         actual: T,
+         expected: T,
+         equality: Equality<*>,
+         printer: (T) -> String = { it.print().value }
+      ): SimpleEqualityResult<T> {
+         return create(equal = false, actual = actual, expected = expected, verifier = equality, printer = printer)
       }
 
       private fun <T> create(
          equal: Boolean,
          actual: T,
          expected: T,
-         verifier: Equality<*>
-      ): SimpleEqualityResult {
+         verifier: Equality<*>,
+         printer: (T) -> String
+      ): SimpleEqualityResult<T> {
          return SimpleEqualityResult(
             equal = equal,
             detailsValue = SimpleEqualityResultDetail(
+               actual = actual,
+               expected = expected,
+               printer = printer,
                explainFn = {
-                  val expectedStr = expected.print().value
-                  val actualStr = actual.print().value
-                  return@SimpleEqualityResultDetail """
-                     | $expectedStr is ${if (equal) "" else "not "}equal to $actualStr by ${verifier.name()}
-                     | Expected: $expectedStr
-                     | Actual  : $actualStr
-                  """.trimMargin()
+                  val message = if (equal) "Actual is equal to expected" else "Actual is not equal to expected"
+                  return@SimpleEqualityResultDetail "$message by ${verifier.name()}"
                }
             )
          )
@@ -54,16 +64,16 @@ interface EqualityResultDetails {
    }
 }
 
-data class SimpleEqualityResult(
+data class SimpleEqualityResult<T>(
    val equal: Boolean,
-   val detailsValue: EqualityResultDetails,
+   val detailsValue: SimpleEqualityResultDetail<T>,
 ) : EqualityResult {
-   fun withDetails(details: EqualityResultDetails): SimpleEqualityResult {
-      return copy(detailsValue = details)
+   fun withDetails(detailFn: () -> String): SimpleEqualityResult<T> {
+      return copy(detailsValue = detailsValue.withDetail(detailFn))
    }
 
-   fun withDetails(explainFn: () -> String): SimpleEqualityResult {
-      return withDetails(SimpleEqualityResultDetail(explainFn))
+   fun withPrinter(printer: (T) -> String): SimpleEqualityResult<T> {
+      return copy(detailsValue = detailsValue)
    }
 
    override fun areEqual(): Boolean = equal
@@ -71,8 +81,33 @@ data class SimpleEqualityResult(
    override fun details(): EqualityResultDetails = detailsValue
 }
 
-data class SimpleEqualityResultDetail(
-   val explainFn: () -> String
+data class SimpleEqualityResultDetail<T>(
+   val actual: T,
+   val expected: T,
+   val explainFn: () -> String,
+   val printer: (T) -> String,
+   val detailsFns: List<() -> String> = emptyList(),
 ) : EqualityResultDetails {
-   override fun explain(): String = explainFn()
+   override fun explain(): String {
+      val result = StringBuilder()
+      result.appendLine(explainFn())
+
+      if (detailsFns.isNotEmpty()) {
+         result.appendLine()
+         detailsFns.forEach { result.appendLine(it()) }
+      }
+
+      result.appendLine()
+      result.appendLine("Expected : ${printer(expected)}")
+      result.appendLine("Actual   : ${printer(actual)}")
+      return result.toString()
+   }
+
+   fun withDetail(detailFn: () -> String): SimpleEqualityResultDetail<T> {
+      return copy(detailsFns = detailsFns + detailFn)
+   }
+
+   fun withPrinter(printer: (T) -> String): SimpleEqualityResultDetail<T> {
+      return copy(printer = printer)
+   }
 }

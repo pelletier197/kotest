@@ -1,9 +1,9 @@
 package io.kotest.equals.types
 
+import io.kotest.assertions.print.print
 import io.kotest.equals.Equality
 import io.kotest.equals.EqualityResult
 import io.kotest.equals.areNotEqual
-import io.kotest.equals.types.utils.printValues
 
 open class MapEquality(
    private val strictNumberEquality: Boolean,
@@ -42,15 +42,15 @@ open class MapEquality(
       }
 
       val details = listOfNotNull(
-         if (keysMissing.isEmpty()) null else "Some keys are missing: ${printValues(keysMissing)}",
-         if (extraKeys.isEmpty()) null else "Some keys should not be there: ${printValues(keysMissing)}",
+         if (keysMissing.isEmpty()) null else "Some keys are missing: ${keysMissing.print().value}",
+         if (extraKeys.isEmpty()) null else "Some keys should not be there: ${extraKeys.print().value}",
          if (differentValues.isEmpty()) null else "Some entries have different values: ${
-            printValues(differentValues.map {
+            differentValues.map {
                """
                At key '${it.first}': ${it.second.details().explain()}
 
                """.trimIndent()
-            })
+            }.print().value
          }",
       )
 

@@ -11,8 +11,8 @@ open class ObjectEqualsEquality<T>(
    override fun name(): String = "object equality"
 
    override fun verify(actual: T, expected: T): EqualityResult {
-      val equal = { EqualityResult.equal(actual = actual, expected = expected, verifier = this) }
-      val notEqual = { EqualityResult.notEqual(actual = actual, expected = expected, verifier = this) }
+      val equal = { EqualityResult.equal(actual = actual, expected = expected, equality = this) }
+      val notEqual = { EqualityResult.notEqual(actual = actual, expected = expected, equality = this) }
 
       return when {
          actual === expected -> equal()

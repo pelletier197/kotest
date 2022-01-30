@@ -1,10 +1,9 @@
 package io.kotest.equals.types
 
+import io.kotest.assertions.print.print
 import io.kotest.equals.Equality
 import io.kotest.equals.EqualityResult
 import io.kotest.equals.areNotEqual
-import io.kotest.equals.types.utils.printValues
-import kotlin.math.exp
 import kotlin.math.min
 
 open class IterableEquality(
@@ -41,11 +40,9 @@ open class IterableEquality(
       }
 
       val messages = listOfNotNull(
-         if (differentIndexes.isNotEmpty()) "Elements differ by ${equality.name()} at indexes ${
-            printValues(differentIndexes)
-         }" else null,
-         if (extraItems.isNotEmpty()) "There are ${extraItems.size} extra items: ${printValues(extraItems)}" else null,
-         if (missingItems.isNotEmpty()) "${missingItems.size} items are missing: ${printValues(missingItems)}" else null,
+         if (differentIndexes.isNotEmpty()) "Elements differ by ${equality.name()} at indexes ${differentIndexes.print().value}" else null,
+         if (extraItems.isNotEmpty()) "There are ${extraItems.size} extra items: ${extraItems.print().value}" else null,
+         if (missingItems.isNotEmpty()) "${missingItems.size} items are missing: ${extraItems.print().value}" else null,
       )
 
       return EqualityResult.notEqual(actual, expected, this).withDetails {
@@ -103,8 +100,8 @@ open class IterableEquality(
       }
 
       val details = listOfNotNull(
-         if (extra.isEmpty()) null else "There are ${extra.size} extra items: ${printValues(extra)}",
-         if (missing.isEmpty()) null else "${missing.size} items are missing: ${printValues(missing)}",
+         if (extra.isEmpty()) null else "There are ${extra.size} extra items: ${extra.print().value}",
+         if (missing.isEmpty()) null else "${missing.size} items are missing: ${missing.print().value}",
       )
 
       return EqualityResult.notEqual(actual, expected, this).withDetails {

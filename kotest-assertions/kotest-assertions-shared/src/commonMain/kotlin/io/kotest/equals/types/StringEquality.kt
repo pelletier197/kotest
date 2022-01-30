@@ -20,22 +20,11 @@ open class StringEquality(
 
       return when {
          expected.equals(actual, ignoreCase = ignoreCase) -> equal()
-         equalIgnoringWhitespace(actual, expected)
-         -> notEqual().withDetails {
-            showEscapedStringDifference(
-               message = "Contents match by ${name()}, but whitespaces differ; output has been escaped to show whitespaces",
-               expected = expected,
-               actual = actual,
-            )
-         }
+         equalIgnoringWhitespace(actual, expected) -> notEqual()
+            .withPrinter { escapeWhitespaces(it) }
+            .withDetails { "Contents match, but whitespaces differ; output has been escaped to show whitespaces" }
          useDiff(expected, actual) -> diff(expected, actual, notEqual())
-         else -> notEqual().withDetails {
-            showEscapedStringDifference(
-               message = "Contents are not equal by ${name()}; output has been escaped to show whitespaces",
-               expected = expected,
-               actual = actual,
-            )
-         }
+         else -> notEqual()
       }
    }
 
@@ -45,14 +34,6 @@ open class StringEquality(
 
    fun caseSensitive(): StringEquality {
       return StringEquality(ignoreCase = false)
-   }
-
-   private fun showEscapedStringDifference(message: String, expected: String, actual: String): String {
-      return """
-               | $message
-               | Expected: ${escapeWhitespaces(expected)}
-               | Actual  : ${escapeWhitespaces(actual)}
-            """.trimMargin()
    }
 
    private fun escapeWhitespaces(input: String): String {
@@ -68,16 +49,18 @@ open class StringEquality(
       return a.equals(b, ignoreCase = ignoreCase)
    }
 
-   private fun diff(expected: String, actual: String, result: SimpleEqualityResult): EqualityResult {
+   private fun diff(expected: String, actual: String, result: SimpleEqualityResult<String>): EqualityResult {
       return when (val diff = diffLargeString(expected, actual)) {
          null -> result
-         else -> result.withDetails {
-            """
-            | Contents are not equal by ${name()}; showing diff
-            | Expected: ${diff.first}
-            | Actual:   ${diff.second}
+         else -> result
+            .withDetails {
+               """
+            | Showing diff:
+            |
+            | First    : ${diff.first}
+            | Second   : ${diff.second}
             """.trimMargin()
-         }
+            }
       }
    }
 
@@ -92,6 +75,6 @@ open class StringEquality(
 
 fun Equality.Companion.byStringEquality(
    ignoreCase: Boolean = false
-   ) = StringEquality(
+) = StringEquality(
    ignoreCase = ignoreCase
 )
