@@ -45,12 +45,8 @@ open class IterableEquality(
          if (missingItems.isNotEmpty()) "${missingItems.size} items are missing: ${extraItems.print().value}" else null,
       )
 
-      return EqualityResult.notEqual(actual, expected, this).withDetails {
-         "There ${if (messages.size > 1) "are ${messages.size} issues" else "is ${messages.size} issue"} with the iterables:\n${
-            messages.joinToString(
-               separator = "\n "
-            )
-         }"
+      return messages.fold(EqualityResult.notEqual(actual, expected, this)) { result, message ->
+         result.withDetails { message }
       }
    }
 

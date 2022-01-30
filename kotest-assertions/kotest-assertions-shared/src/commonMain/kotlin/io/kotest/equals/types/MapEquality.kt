@@ -47,16 +47,14 @@ open class MapEquality(
          if (differentValues.isEmpty()) null else "Some entries have different values: ${
             differentValues.map {
                """
-               At key '${it.first}': ${it.second.details().explain()}
+               At key '${it.first.print().value}': ${it.second.details().explain()}
 
                """.trimIndent()
             }.print().value
          }",
       )
 
-      return notEqual().withDetails {
-         (listOf("Map contents are not equal by ${name()})") + details).joinToString(separator = "\n")
-      }
+      return details.fold(notEqual()) { result, item -> result.withDetails { item } }
    }
 
    protected fun objectEqualityVerifier(): Equality<Any?> = ObjectEqualsEquality(
