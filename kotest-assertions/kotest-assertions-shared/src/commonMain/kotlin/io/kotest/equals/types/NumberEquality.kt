@@ -6,7 +6,7 @@ import io.kotest.equals.EqualityResult
 class NumberEquality(
    private val strictNumberEquality: Boolean
 ) : Equality<Number> {
-   override fun name(): String = "${if (strictNumberEquality) "strict " else ""} number equality"
+   override fun name(): String = "number equality${if (strictNumberEquality) " (strict) " else ""}"
 
    override fun verify(actual: Number, expected: Number): EqualityResult {
       if (compare(actual, expected)) {
@@ -51,6 +51,6 @@ class NumberEquality(
 
 fun Equality.Companion.byNumberEquality(
    strictNumberEquality: Boolean = false,
-) : NumberEquality = NumberEquality(
+): NumberEquality = NumberEquality(
    strictNumberEquality = strictNumberEquality,
 )

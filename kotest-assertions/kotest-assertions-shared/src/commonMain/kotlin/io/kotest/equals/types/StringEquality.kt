@@ -12,7 +12,7 @@ open class StringEquality(
 ) : Equality<String> {
    private val whiteSpaces = Regex("[\n\r\t]")
 
-   override fun name(): String = "string equality${if (ignoreCase) " ignoring case" else ""}"
+   override fun name(): String = "string equality${if (ignoreCase) " (ignoring case)" else ""}"
 
    override fun verify(actual: String, expected: String): EqualityResult {
       val equal = { EqualityResult.equal(actual, expected, this) }
