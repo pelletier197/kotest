@@ -12,7 +12,7 @@ open class IterableEquality(
    private val ignoreCase: Boolean,
    private val ignoreOrder: Boolean,
 ) : Equality<Iterable<*>> {
-   override fun name(): String = "iterable equality"
+   override fun name(): String = "iterable equality${if (ignoreOrder) " (ignoring order)" else ""}"
 
    override fun verify(actual: Iterable<*>, expected: Iterable<*>): EqualityResult {
       return when {
@@ -42,9 +42,7 @@ open class IterableEquality(
 
       val messages = listOfNotNull(
          if (differentIndexes.isNotEmpty()) "Elements differ by ${equality.name()} at indexes ${
-            printValues(
-               differentIndexes
-            )
+            printValues(differentIndexes)
          }" else null,
          if (extraItems.isNotEmpty()) "There are ${extraItems.size} extra items: ${printValues(extraItems)}" else null,
          if (missingItems.isNotEmpty()) "${missingItems.size} items are missing: ${printValues(missingItems)}" else null,
@@ -81,7 +79,6 @@ open class IterableEquality(
    }
 
 
-   // This implementation ignores set item ordering.
    private fun areSetsEqual(actual: Set<*>, expected: Set<*>): EqualityResult {
       val itemEqualityVerifier = objectEquality()
       return areEqualIgnoringOrder(actual = actual, expected = expected, iterableContainFunction = { set, item ->
@@ -106,12 +103,12 @@ open class IterableEquality(
       }
 
       val details = listOfNotNull(
-         if (missing.isEmpty()) null else "Some entries are missing: ${printValues(missing)}",
-         if (extra.isEmpty()) null else "Some keys should not be there: ${printValues(extra)}",
+         if (extra.isEmpty()) null else "There are ${extra.size} extra items: ${printValues(extra)}",
+         if (missing.isEmpty()) null else "${missing.size} items are missing: ${printValues(missing)}",
       )
 
       return EqualityResult.notEqual(actual, expected, this).withDetails {
-         (listOf("Iterable contents are not equal by ${name()} (ignoring order))") + details).joinToString(
+         (listOf("Iterable contents are not equal by ${name()}") + details).joinToString(
             separator = "\n"
          )
       }
