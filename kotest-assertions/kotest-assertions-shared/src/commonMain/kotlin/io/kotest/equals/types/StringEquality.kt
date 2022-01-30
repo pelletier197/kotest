@@ -7,7 +7,7 @@ import io.kotest.equals.Equality
 import io.kotest.equals.EqualityResult
 import io.kotest.equals.SimpleEqualityResult
 
-open class StringEqualityVerifier(
+open class StringEquality(
    private val ignoreCase: Boolean,
 ) : Equality<String> {
    private val whiteSpaces = Regex("[\n\r\t]")
@@ -39,12 +39,12 @@ open class StringEqualityVerifier(
       }
    }
 
-   fun ignoringCase(): StringEqualityVerifier {
-      return StringEqualityVerifier(ignoreCase = true)
+   fun ignoringCase(): StringEquality {
+      return StringEquality(ignoreCase = true)
    }
 
-   fun caseSensitive(): StringEqualityVerifier {
-      return StringEqualityVerifier(ignoreCase = false)
+   fun caseSensitive(): StringEquality {
+      return StringEquality(ignoreCase = false)
    }
 
    private fun showEscapedStringDifference(message: String, expected: String, actual: String): String {
@@ -92,6 +92,6 @@ open class StringEqualityVerifier(
 
 fun Equality.Companion.byStringEquality(
    ignoreCase: Boolean = false
-   ) = StringEqualityVerifier(
+   ) = StringEquality(
    ignoreCase = ignoreCase
 )

@@ -50,21 +50,21 @@ open class ObjectEqualsEquality<T>(
 //      override fun toString(): String = name()
    }
 
-   protected fun mapEqualityVerifier(): Equality<Map<*, *>> = MapEqualityVerifier(
+   protected fun mapEqualityVerifier(): Equality<Map<*, *>> = MapEquality(
       strictNumberEquality = strictNumberEquality,
       ignoreCase = ignoreCase,
       ignoreOrder = ignoreOrder,
    )
 
-   protected fun iterableEqualityVerifier(): Equality<Iterable<*>> = IterableEqualityVerifier(
+   protected fun iterableEqualityVerifier(): Equality<Iterable<*>> = IterableEquality(
       strictNumberEquality = strictNumberEquality,
       ignoreCase = ignoreCase,
       ignoreOrder = ignoreOrder,
    )
 
-   protected fun stringEqualityVerifier(): Equality<String> = StringEqualityVerifier(ignoreCase = true)
+   protected fun stringEqualityVerifier(): Equality<String> = StringEquality(ignoreCase = true)
 
-   protected fun regexEqualityVerifier(): Equality<Regex> = RegexEqualityVerifier()
+   protected fun regexEqualityVerifier(): Equality<Regex> = RegexEquality()
 
    fun withStrictNumberEquality() = copy(strictNumberEquality = true)
    fun withoutStrictNumberEquality() = copy(strictNumberEquality = false)

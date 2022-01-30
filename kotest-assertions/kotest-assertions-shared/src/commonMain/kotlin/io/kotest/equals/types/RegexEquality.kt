@@ -3,7 +3,7 @@ package io.kotest.equals.types
 import io.kotest.equals.Equality
 import io.kotest.equals.EqualityResult
 
-open class RegexEqualityVerifier : Equality<Regex> {
+open class RegexEquality : Equality<Regex> {
    override fun name(): String = "regex pattern equality"
 
    override fun verify(actual: Regex, expected: Regex): EqualityResult {
@@ -15,4 +15,4 @@ open class RegexEqualityVerifier : Equality<Regex> {
    }
 }
 
-fun Equality.Companion.regexEquality(): RegexEqualityVerifier = RegexEqualityVerifier()
+fun Equality.Companion.regexEquality(): RegexEquality = RegexEquality()

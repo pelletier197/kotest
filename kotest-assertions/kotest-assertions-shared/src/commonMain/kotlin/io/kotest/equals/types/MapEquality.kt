@@ -5,7 +5,7 @@ import io.kotest.equals.EqualityResult
 import io.kotest.equals.areNotEqual
 import io.kotest.equals.types.utils.printValues
 
-open class MapEqualityVerifier(
+open class MapEquality(
    private val strictNumberEquality: Boolean,
    private val ignoreCase: Boolean,
    private val ignoreOrder: Boolean,
@@ -76,8 +76,8 @@ open class MapEqualityVerifier(
       strictNumberEquality: Boolean = this.strictNumberEquality,
       ignoreCase: Boolean = this.ignoreCase,
       ignoreOrder: Boolean = this.ignoreOrder,
-   ): MapEqualityVerifier {
-      return MapEqualityVerifier(
+   ): MapEquality {
+      return MapEquality(
          strictNumberEquality = strictNumberEquality,
          ignoreCase = ignoreCase,
          ignoreOrder = ignoreOrder,
@@ -89,7 +89,7 @@ fun Equality.Companion.byMapEquality(
    strictNumberEquality: Boolean = false,
    ignoreCase: Boolean = false,
    ignoreOrder: Boolean = false,
-): MapEqualityVerifier = MapEqualityVerifier(
+): MapEquality = MapEquality(
    strictNumberEquality = strictNumberEquality,
    ignoreCase = ignoreCase,
    ignoreOrder = ignoreOrder,

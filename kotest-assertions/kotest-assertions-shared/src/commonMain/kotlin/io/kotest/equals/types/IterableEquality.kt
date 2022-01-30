@@ -2,9 +2,12 @@ package io.kotest.equals.types
 
 import io.kotest.equals.Equality
 import io.kotest.equals.EqualityResult
+import io.kotest.equals.areNotEqual
 import io.kotest.equals.types.utils.printValues
+import kotlin.math.exp
+import kotlin.math.min
 
-open class IterableEqualityVerifier(
+open class IterableEquality(
    private val strictNumberEquality: Boolean,
    private val ignoreCase: Boolean,
    private val ignoreOrder: Boolean,
@@ -14,30 +17,56 @@ open class IterableEqualityVerifier(
    override fun verify(actual: Iterable<*>, expected: Iterable<*>): EqualityResult {
       return when {
          actual is Set<*> && expected is Set<*> -> areSetsEqual(actual, expected)
-         ignoreOrder -> areEqualIgnoringOrder(actual, expected)
-         else -> areEqualInOrder(actual, expected)
+         else -> {
+            val typeEquality = typeCompatibilityEquality(actual, expected)
+            return when {
+               typeEquality.areNotEqual() -> return typeEquality
+               ignoreOrder -> areEqualIgnoringOrder(actual, expected)
+               else -> areEqualInOrder(actual.toList(), expected.toList())
+            }
+         }
       }
    }
 
-   private fun areEqualInOrder(actual: Iterable<*>, expected: Iterable<*>): EqualityResult {
-      TODO("Not yet implemented")
+   private fun areEqualInOrder(actual: List<*>, expected: List<*>): EqualityResult {
+      val extraItems = if (actual.size > expected.size) actual.subList(expected.size, actual.size) else emptyList()
+      val missingItems = if (expected.size > actual.size) expected.subList(actual.size, expected.size) else emptyList()
+      val equality = objectEquality()
+      val differentIndexes = (0 until min(actual.size, expected.size)).filter {
+         equality.verify(actual[it], expected[it]).areNotEqual()
+      }
+
+      if (extraItems.isEmpty() && missingItems.isEmpty() && differentIndexes.isEmpty()) {
+         return EqualityResult.equal(actual, expected, this)
+      }
+
+      val messages = listOfNotNull(
+         if (differentIndexes.isNotEmpty()) "Elements differ by ${equality.name()} at indexes ${
+            printValues(
+               differentIndexes
+            )
+         }" else null,
+         if (extraItems.isNotEmpty()) "There are ${extraItems.size} extra items: ${printValues(extraItems)}" else null,
+         if (missingItems.isNotEmpty()) "${missingItems.size} items are missing: ${printValues(missingItems)}" else null,
+      )
+
+      return EqualityResult.notEqual(actual, expected, this).withDetails {
+         "There ${if (messages.size > 1) "are ${messages.size} issues" else "is ${messages.size} issue"} with the iterables:\n${
+            messages.joinToString(
+               separator = "\n "
+            )
+         }"
+      }
    }
 
    private fun areEqualIgnoringOrder(actual: Iterable<*>, expected: Iterable<*>): EqualityResult {
-      val itemEqualityVerifier = objectEqualityVerifier()
-      val contentResult = areEqualIgnoringOrder(
+      val itemEqualityVerifier = objectEquality()
+      return areEqualIgnoringOrder(
          actual = actual.toList(),
          expected = expected.toList(),
          iterableContainFunction = { list, item ->
             list.any { itemEqualityVerifier.verify(it, item).areEqual() }
          })
-      val typeEqualityResult = typeCompatibilityEquality(actual, expected)
-
-      if(contentResult.areEqual() && typeEqualityResult.areEqual()) {
-         return EqualityResult.equal(actual, expected, this)
-      }
-
-      TODO()
    }
 
    private fun typeCompatibilityEquality(actual: Iterable<*>, expected: Iterable<*>): EqualityResult {
@@ -52,22 +81,12 @@ open class IterableEqualityVerifier(
    }
 
 
-//   private fun areTypesCompatible(actual: Iterable<*>, expected: Iterable<*>): EqualityResult {
-//      val tag = "${actual::class.simpleName ?: actual::class} with ${expected::class.simpleName ?: expected::class}\n"
-//      val detailErrorMessage = when {
-//         actual is Set<*> || expected is Set<*> -> "Set can be compared only to Set\nMay not compare $tag"
-//         (actual is Collection || actual is Array<*>) || (expected is Collection || expected is Array<*>) -> "${IterableEq.trigger} typed contract\nMay not compare $tag"
-//         else -> "${IterableEq.trigger} promiscuous iterators\nMay not compare $tag"
-//      }
-//      return failure(Expected(Printed("*")), Actual(Printed("*")), detailErrorMessage)
-//   }
-
-
-   // This implementation ignores set item order as for set's equal implementation.
-   protected fun areSetsEqual(actual: Set<*>, expected: Set<*>): EqualityResult {
-      val itemEqualityVerifier = objectEqualityVerifier()
+   // This implementation ignores set item ordering.
+   private fun areSetsEqual(actual: Set<*>, expected: Set<*>): EqualityResult {
+      val itemEqualityVerifier = objectEquality()
       return areEqualIgnoringOrder(actual = actual, expected = expected, iterableContainFunction = { set, item ->
-         // Contained as is. Best performance.
+         // Contained as is.
+         // Best performance for most implementation, as it will usually either be a hash table or a binary tree.
          set.contains(item)
             // Any item is equal according to the equality verifier
             || expected.any { itemEqualityVerifier.verify(item, it).areEqual() }
@@ -98,7 +117,7 @@ open class IterableEqualityVerifier(
       }
    }
 
-   protected fun objectEqualityVerifier(): Equality<Any?> = ObjectEqualsEquality(
+   protected fun objectEquality(): Equality<Any?> = ObjectEqualsEquality(
       strictNumberEquality = strictNumberEquality,
       ignoreCase = ignoreCase,
       ignoreOrder = ignoreOrder,
@@ -115,8 +134,8 @@ open class IterableEqualityVerifier(
       strictNumberEquality: Boolean = this.strictNumberEquality,
       ignoreCase: Boolean = this.ignoreCase,
       ignoreOrder: Boolean = this.ignoreOrder,
-   ): IterableEqualityVerifier {
-      return IterableEqualityVerifier(
+   ): IterableEquality {
+      return IterableEquality(
          strictNumberEquality = strictNumberEquality,
          ignoreCase = ignoreCase,
          ignoreOrder = ignoreOrder,
@@ -128,7 +147,7 @@ fun Equality.Companion.byIterableEquality(
    strictNumberEquality: Boolean = false,
    ignoreCase: Boolean = false,
    ignoreOrder: Boolean = false,
-): IterableEqualityVerifier = IterableEqualityVerifier(
+): IterableEquality = IterableEquality(
    strictNumberEquality = strictNumberEquality,
    ignoreCase = ignoreCase,
    ignoreOrder = ignoreOrder,

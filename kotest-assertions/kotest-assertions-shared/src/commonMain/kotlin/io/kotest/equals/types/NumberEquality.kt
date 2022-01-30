@@ -3,7 +3,7 @@ package io.kotest.equals.types
 import io.kotest.equals.Equality
 import io.kotest.equals.EqualityResult
 
-class NumberEqualityVerifier(
+class NumberEquality(
    private val strictNumberEquality: Boolean
 ) : Equality<Number> {
    override fun name(): String = "${if (strictNumberEquality) "strict " else ""} number equality"
@@ -45,12 +45,12 @@ class NumberEqualityVerifier(
       return number is Float || number is Double
    }
 
-   fun withStrictNumberEquality() = NumberEqualityVerifier(true)
-   fun withoutStrictNumberEquality() = NumberEqualityVerifier(false)
+   fun withStrictNumberEquality() = NumberEquality(true)
+   fun withoutStrictNumberEquality() = NumberEquality(false)
 }
 
 fun Equality.Companion.byNumberEquality(
    strictNumberEquality: Boolean = false,
-) : NumberEqualityVerifier = NumberEqualityVerifier(
+) : NumberEquality = NumberEquality(
    strictNumberEquality = strictNumberEquality,
 )
